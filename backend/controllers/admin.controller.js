@@ -6,10 +6,11 @@ export const registerAdmin = async (req, res ) => {
     try{
         const {name, email, password} = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-        const existingAdmin = Admin.findOne({email});
-        if(existingAdmin) {
-            res.status(401).json({message: "Admin already exists "});
-        } 
+        const existingAdmin = await Admin.findOne({ email });
+        if (existingAdmin) {
+            console.log("Admin already exists:", existingAdmin.name);
+            return res.status(401).json({ message: "Admin already exists" });
+        }
         else{
             const admin = await Admin.create(({name, email, password: hashedPassword}));
             res.status(201).json({message: "Admin is registered successfully"});

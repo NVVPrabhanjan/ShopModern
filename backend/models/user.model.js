@@ -12,7 +12,15 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
-    }
-})
+    },
+    // image: {
+    //     type: String,
+    //     required: true
+    // },
+    createdAt: { 
+        type: Date, 
+        default: Date.now 
+    },
+}, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

@@ -1,25 +1,35 @@
-import Order from "../models/order.model.js"
-import Product from "../models/product.model.js"
+import Order from "../models/order.model.js";
+import Product from "../models/product.model.js";
 
 export const placeOrder = async (req, res) => {
     try {
         const { products } = req.body;
-        const userId = re1.user.id;
-
+        const userId = req.user.id;
         let totalAmount = 0;
+        const orderedProducts = [];
 
         for (const item of products) {
-            const product = await Product.findOne(item.productId);
-            if (!product)
-                res.status(404).json({ message: "Product not found" });
+            const product = await Product.findById(item.productId);
+            if (!product) {
+                return res.status(404).json({ message: `Product ${item.productId} not found` });
+            }
+
+            if (product.stock < item.quantity) {
+                return res.status(400).json({ message: `Insufficient stock for ${product.name}` });
+            }
+            product.stock -= item.quantity;
+            await product.save();
             totalAmount += product.price * item.quantity;
+            orderedProducts.push({ productId: product._id, quantity: item.quantity });
         }
-        const newOrder = await Order.create({ userId, products, totalAmount });
-        res.status(201).json({ message: "Order places successfully " });
+        const newOrder = await Order.create({ userId, products: orderedProducts, totalAmount });
+
+        res.status(201).json({ message: "Order placed successfully", order: newOrder });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
-}
+};
+
 
 export const getAllOrders = async (req, res) => {
     try {
